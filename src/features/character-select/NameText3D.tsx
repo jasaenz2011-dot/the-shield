@@ -1,10 +1,12 @@
 import { Canvas } from '@react-three/fiber'
 import { Center, Float, Text3D } from '@react-three/drei'
 import { useAppStore } from '../../app/store/appStore'
+import type { ShieldStyle } from '../styles/registry'
 
 // Real extruded 3D geometry with lighting, floating gently. dpr is capped and
 // antialias left to the (cheap) default so this stays free on integrated GPUs.
-export function NameText3D({ name }: { name: string }) {
+// The material comes from the chosen art style.
+export function NameText3D({ name, style }: { name: string; style: ShieldStyle }) {
   const colors = useAppStore((s) => s.config.colors)
   const display = name.trim().toUpperCase() || 'PLAYER 1'
   // Keep long names on screen: shrink with length.
@@ -33,7 +35,11 @@ export function NameText3D({ name }: { name: string }) {
             bevelSegments={3}
           >
             {display}
-            <meshStandardMaterial color={colors.primary} metalness={0.4} roughness={0.22} />
+            <meshStandardMaterial
+              color={style.nameMaterial.color}
+              metalness={style.nameMaterial.metalness}
+              roughness={style.nameMaterial.roughness}
+            />
           </Text3D>
         </Center>
       </Float>

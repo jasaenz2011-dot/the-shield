@@ -9,12 +9,15 @@ import { YearBadge } from './YearBadge'
 import { MontageBackground } from './MontageBackground'
 import { PressStart } from './PressStart'
 import { StingrayEgg } from './StingrayEgg'
+import { StylePicker } from '../styles/StylePicker'
+import { styleById } from '../styles/registry'
 
 // THE LOCKED FEATURE: every shield opens on this screen.
 export function CharacterSelectScreen() {
   const setScreen = useAppStore((s) => s.setScreen)
   const { current, updateCurrent } = useShieldStore()
   const [editing, setEditing] = useState(false)
+  const [pickingStyle, setPickingStyle] = useState(false)
 
   if (!current) {
     setScreen('home')
@@ -27,10 +30,11 @@ export function CharacterSelectScreen() {
   }
 
   const character = current.character
+  const style = styleById(current.style)
 
   return (
     <div className="relative h-full overflow-hidden">
-      <MontageBackground urls={character?.montageUrls ?? []} />
+      <MontageBackground urls={character?.montageUrls ?? []} sceneFilter={style.sceneFilter} />
       <StingrayEgg />
 
       {!character || editing ? (
@@ -39,7 +43,7 @@ export function CharacterSelectScreen() {
         <div className="relative z-10 flex h-full flex-col items-center">
           {/* 3D extruded name floats in front of / above the character */}
           <div className="pointer-events-none absolute inset-x-0 top-6 z-20 h-40">
-            <NameText3D name={current.studentName} />
+            <NameText3D name={current.studentName} style={style} />
           </div>
 
           {/* Character layer */}
@@ -72,8 +76,25 @@ export function CharacterSelectScreen() {
             >
               Edit character
             </button>
+            <button
+              onClick={() => setPickingStyle(true)}
+              className="rounded-lg bg-black/40 px-3 py-1.5 text-xs text-white/60 backdrop-blur-sm transition hover:text-white"
+            >
+              Style: {style.name}
+            </button>
           </div>
         </div>
+      )}
+
+      {pickingStyle && (
+        <StylePicker
+          currentId={current.style}
+          onPick={(id) => {
+            void updateCurrent({ style: id })
+            setPickingStyle(false)
+          }}
+          onClose={() => setPickingStyle(false)}
+        />
       )}
     </div>
   )

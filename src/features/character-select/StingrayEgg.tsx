@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Stingray } from '../styles/Stingray'
 
 const KONAMI = [
   'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
@@ -32,16 +33,9 @@ export function StingrayEgg() {
       className="pointer-events-none absolute z-40"
       style={{ top: '30%', left: 0, animation: 'stingray-swim 5s ease-in-out forwards' }}
     >
-      <svg width="140" height="90" viewBox="0 0 140 90" style={{ filter: 'drop-shadow(0 0 14px var(--shield-primary))' }}>
-        <path
-          d="M10 45 Q 40 8 70 24 Q 100 8 118 40 Q 122 45 118 50 Q 100 82 70 66 Q 40 82 10 45 Z"
-          fill="var(--shield-primary)"
-          opacity="0.9"
-        />
-        <path d="M114 45 Q 138 40 139 45 Q 138 50 114 45 Z" fill="var(--shield-primary)" opacity="0.7" />
-        <circle cx="52" cy="38" r="4" fill="#0b0f1a" />
-        <circle cx="88" cy="38" r="4" fill="#0b0f1a" />
-      </svg>
+      <div style={{ filter: 'drop-shadow(0 0 14px var(--shield-primary))' }}>
+        <Stingray color="var(--shield-primary)" size={140} />
+      </div>
       <style>{`
         @keyframes stingray-swim {
           0% { transform: translateX(-160px) rotate(-6deg); }

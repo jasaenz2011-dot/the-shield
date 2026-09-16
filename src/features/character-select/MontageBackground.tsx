@@ -10,7 +10,7 @@ function isVideo(url: string): boolean {
 // Personality montage behind the character: low opacity, heavy blur, slow
 // Ken Burns drift, lazy crossfades. Only the current and previous items are
 // mounted, so cost stays flat however many uploads exist.
-export function MontageBackground({ urls }: { urls: string[] }) {
+export function MontageBackground({ urls, sceneFilter }: { urls: string[]; sceneFilter?: string }) {
   const [index, setIndex] = useState(0)
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -59,7 +59,7 @@ export function MontageBackground({ urls }: { urls: string[] }) {
             style={{
               opacity: active ? 0.35 : 0,
               transitionDuration: `${FADE_MS}ms`,
-              filter: 'blur(14px) saturate(1.1)',
+              filter: `blur(14px) saturate(1.1) ${sceneFilter ?? ''}`,
               transform: 'scale(1.12)',
               animation:
                 active && !reduceMotion ? `montage-drift ${CYCLE_MS + FADE_MS}ms linear` : undefined
