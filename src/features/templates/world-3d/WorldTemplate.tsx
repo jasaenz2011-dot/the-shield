@@ -4,15 +4,54 @@ import { Float, Html, OrbitControls } from '@react-three/drei'
 import type { TemplateProps } from '../types'
 import { SUBJECTS, type Subject } from '../../../types/shield'
 import { ArtifactCard, EmptyState } from '../shared'
+import { SplatScene } from '../../splats/SplatScene'
 
-// Free-roam 3D world stub: one floating island per subject. Deliberately
-// light — low-poly primitives, capped dpr, no shadows — so it orbits at 60fps
-// on integrated graphics. Splat environments plug in here in Phase 5.
+// Free-roam 3D world: one floating island per subject, optionally set inside
+// a Gaussian-splat environment (.ply/.splat/.ksplat — photoreal scans).
+// Deliberately light — low-poly primitives, capped dpr, CPU splat sort — so
+// it stays smooth on integrated graphics.
 
 const ISLAND_SUBJECTS = Object.keys(SUBJECTS) as Subject[]
+const MAX_SPLAT_BYTES = 100 * 1024 * 1024
+const SAMPLE_WORLD_URL = 'samples/sample-world.splat'
 
-export function WorldTemplate({ shield }: TemplateProps) {
+interface WorldData {
+  splatUrl?: string | null
+}
+
+export function WorldTemplate({ shield, presentMode, onDataChange }: TemplateProps) {
   const [open, setOpen] = useState<Subject | null>(null)
+  const data = (shield.templateData['world'] as WorldData | undefined) ?? {}
+  const [splatError, setSplatError] = useState<string | null>(null)
+  const [loadingWorld, setLoadingWorld] = useState(false)
+  const splatUrl = data.splatUrl ?? null
+
+  const setSplat = (url: string | null) => {
+    setSplatError(null)
+    onDataChange({ ...data, splatUrl: url })
+  }
+
+  const importWorldFile = async (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    if (!['ply', 'splat', 'ksplat'].includes(ext)) {
+      setSplatError('Worlds are .ply, .splat, or .ksplat files.')
+      return
+    }
+    if (file.size > MAX_SPLAT_BYTES) {
+      setSplatError('That world is over 100MB — compress it to .ksplat first.')
+      return
+    }
+    setLoadingWorld(true)
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const { url } = await window.shieldAPI.saveAsset(shield.id, `world-${Date.now()}.${ext}`, bytes)
+      setSplat(url)
+    } catch (e) {
+      setSplatError(e instanceof Error ? e.message : 'Could not import that world')
+    } finally {
+      setLoadingWorld(false)
+    }
+  }
 
   return (
     <div className="relative h-full">
@@ -26,11 +65,15 @@ export function WorldTemplate({ shield }: TemplateProps) {
         <ambientLight intensity={0.5} />
         <directionalLight position={[6, 10, 4]} intensity={1.6} />
 
-        {/* ground disc */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
-          <circleGeometry args={[26, 48]} />
-          <meshStandardMaterial color="#0b1322" roughness={1} />
-        </mesh>
+        {/* splat environment replaces the plain ground disc when set */}
+        {splatUrl ? (
+          <SplatScene url={splatUrl} onError={setSplatError} />
+        ) : (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
+            <circleGeometry args={[26, 48]} />
+            <meshStandardMaterial color="#0b1322" roughness={1} />
+          </mesh>
+        )}
 
         {ISLAND_SUBJECTS.map((subject, i) => {
           const angle = (i / ISLAND_SUBJECTS.length) * Math.PI * 2
@@ -68,6 +111,48 @@ export function WorldTemplate({ shield }: TemplateProps) {
       <p className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/35">
         Drag to look around &middot; click an island to open it
       </p>
+
+      {!presentMode && (
+        <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
+          <label
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                ;(e.currentTarget.querySelector('input') as HTMLInputElement | null)?.click()
+              }
+            }}
+            className="cursor-pointer rounded-lg bg-black/50 px-3 py-1.5 text-xs text-white/70 backdrop-blur-sm transition hover:text-white"
+          >
+            {loadingWorld ? 'Loading world…' : 'Load photoreal world'}
+            <input
+              type="file"
+              accept=".ply,.splat,.ksplat"
+              className="hidden"
+              disabled={loadingWorld}
+              onChange={(e) => e.target.files?.[0] && void importWorldFile(e.target.files[0])}
+            />
+          </label>
+          {!splatUrl && (
+            <button
+              onClick={() => setSplat(SAMPLE_WORLD_URL)}
+              className="rounded-lg bg-black/50 px-3 py-1.5 text-xs text-white/70 backdrop-blur-sm transition hover:text-white"
+            >
+              Try the sample world
+            </button>
+          )}
+          {splatUrl && (
+            <button
+              onClick={() => setSplat(null)}
+              className="rounded-lg bg-black/50 px-3 py-1.5 text-xs text-white/70 backdrop-blur-sm transition hover:text-white"
+            >
+              Remove world
+            </button>
+          )}
+          {splatError && <span className="text-xs text-[var(--shield-accent)]">{splatError}</span>}
+        </div>
+      )}
 
       {open && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-10 backdrop-blur-sm">
