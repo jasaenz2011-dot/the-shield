@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ArtifactRef, Subject } from '../../types/shield'
 import { SUBJECTS } from '../../types/shield'
 
@@ -12,6 +12,14 @@ interface Props {
 // copy; nothing touches the document until Save.
 export function OrganizeDrawer({ artifacts, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<ArtifactRef[]>(artifacts)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   const move = (index: number, dir: -1 | 1) => {
     const target = index + dir

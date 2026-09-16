@@ -13,11 +13,13 @@ function isVideo(url: string): boolean {
 export function MontageBackground({ urls }: { urls: string[] }) {
   const [index, setIndex] = useState(0)
 
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   useEffect(() => {
-    if (urls.length < 2) return
+    if (urls.length < 2 || reduceMotion) return
     const id = window.setInterval(() => setIndex((i) => (i + 1) % urls.length), CYCLE_MS)
     return () => window.clearInterval(id)
-  }, [urls.length])
+  }, [urls.length, reduceMotion])
 
   if (urls.length === 0) {
     return (
@@ -59,7 +61,8 @@ export function MontageBackground({ urls }: { urls: string[] }) {
               transitionDuration: `${FADE_MS}ms`,
               filter: 'blur(14px) saturate(1.1)',
               transform: 'scale(1.12)',
-              animation: active ? `montage-drift ${CYCLE_MS + FADE_MS}ms linear` : undefined
+              animation:
+                active && !reduceMotion ? `montage-drift ${CYCLE_MS + FADE_MS}ms linear` : undefined
             }}
           >
             {media}

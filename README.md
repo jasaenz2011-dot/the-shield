@@ -11,12 +11,20 @@ year, and present it themselves.
   five-vibe idle animation rig, extruded 3D name (three.js), year badge, montage background,
   PRESS START. Verified 60fps in automated end-to-end test.
 - ⬜ Phase 2 — Style Picker Gallery
-- ⬜ Phase 3 — Template system
-- ⬜ Phase 4 — Artifact ingestion
+- ✅ **Phase 3** — Template system: six templates (mansion, cinematic scroll, timeline,
+  3D world, storybook, blank) over one shared content model; template switches never
+  lose work; present mode.
+- ✅ **Phase 4** — Artifact ingestion: drag-and-drop + picker, EXIF-stripping image
+  re-encode, tagging tray, organize drawer. (720p video transcode deferred: 50MB cap
+  instead — single-threaded WASM encoding is minutes-per-clip on school hardware.)
 - ⬜ Phase 5 — Gaussian Splatting
 - ⬜ Phase 6 — Cloud AI hooks (consent-gated; intentionally absent until then)
-- ⬜ Phase 7 — Export pipeline
-- ⬜ Phase 8 — Polish
+- ✅ **Phase 7** — Export pipeline: one folder (`index.html` + `assets/`), fully
+  self-contained vanilla-JS viewer, presents from `file://` offline. Original
+  photos never leave the machine. (3D world exports as grid view for now.)
+- 🔶 Phase 8 — Polish (in progress): screen crossfades, keyboard-accessible uploads,
+  reduced-motion coverage, Esc handling, Konami stingray. Remaining: sound design,
+  per-style ambient audio, final art pass (waits on Phase 2 styles).
 
 ## Development
 

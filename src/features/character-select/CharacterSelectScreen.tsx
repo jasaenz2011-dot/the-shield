@@ -8,6 +8,7 @@ import { NameText3D } from './NameText3D'
 import { YearBadge } from './YearBadge'
 import { MontageBackground } from './MontageBackground'
 import { PressStart } from './PressStart'
+import { StingrayEgg } from './StingrayEgg'
 
 // THE LOCKED FEATURE: every shield opens on this screen.
 export function CharacterSelectScreen() {
@@ -30,6 +31,7 @@ export function CharacterSelectScreen() {
   return (
     <div className="relative h-full overflow-hidden">
       <MontageBackground urls={character?.montageUrls ?? []} />
+      <StingrayEgg />
 
       {!character || editing ? (
         <CharacterSetup shieldId={current.id} initial={character} onDone={handleSetupDone} />

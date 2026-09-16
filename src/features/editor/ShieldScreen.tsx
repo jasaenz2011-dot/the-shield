@@ -68,6 +68,9 @@ export function ShieldScreen() {
           <span className="ml-2 text-sm font-bold text-white/80">
             {template.icon} {template.name}
           </span>
+          <span className="ml-3 text-xs text-white/30" title="Every change writes straight to disk">
+            All changes saved
+          </span>
           <span className="flex-1" />
           <button
             onClick={() => document.getElementById('ingest-file-input')?.click()}

@@ -151,7 +151,17 @@ export function CharacterSetup({ shieldId, initial, onDone }: Props) {
           <p className="max-w-md text-center text-white/60">
             Upload a photo of yourself &mdash; any background is fine, we&rsquo;ll cut you out.
           </p>
-          <label className="cursor-pointer rounded-2xl border-2 border-dashed border-[var(--shield-primary)]/60 bg-white/5 px-16 py-14 text-center transition hover:bg-white/10">
+          <label
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                ;(e.currentTarget.querySelector('input') as HTMLInputElement | null)?.click()
+              }
+            }}
+            className="cursor-pointer rounded-2xl border-2 border-dashed border-[var(--shield-primary)]/60 bg-white/5 px-16 py-14 text-center transition hover:bg-white/10 focus-visible:ring-4 focus-visible:ring-[var(--shield-primary)]/40"
+          >
             <span className="text-lg font-bold text-[var(--shield-primary)]">
               {busy ?? 'Choose a photo'}
             </span>
@@ -220,7 +230,17 @@ export function CharacterSetup({ shieldId, initial, onDone }: Props) {
             Add photos or clips of your life &mdash; pets, sports, friends, hobbies. They&rsquo;ll
             play softly behind you. Optional.
           </p>
-          <label className="cursor-pointer rounded-xl border border-dashed border-white/30 bg-white/5 px-10 py-6 transition hover:bg-white/10">
+          <label
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                ;(e.currentTarget.querySelector('input') as HTMLInputElement | null)?.click()
+              }
+            }}
+            className="cursor-pointer rounded-xl border border-dashed border-white/30 bg-white/5 px-10 py-6 transition hover:bg-white/10 focus-visible:ring-4 focus-visible:ring-[var(--shield-primary)]/40"
+          >
             <span className="text-white/70">
               {busy ?? (montageUrls.length > 0 ? `${montageUrls.length} added — add more` : 'Add photos or videos')}
             </span>

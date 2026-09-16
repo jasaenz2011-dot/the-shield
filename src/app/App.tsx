@@ -19,10 +19,13 @@ export function App() {
 
   return (
     <ThemeProvider>
-      {screen === 'splash' && <SplashScreen />}
-      {screen === 'home' && <HomeScreen />}
-      {screen === 'character' && <CharacterSelectScreen />}
-      {screen === 'shield' && <ShieldScreen />}
+      {/* keyed wrapper crossfades between top-level screens */}
+      <div key={screen} className="screen-fade h-full">
+        {screen === 'splash' && <SplashScreen />}
+        {screen === 'home' && <HomeScreen />}
+        {screen === 'character' && <CharacterSelectScreen />}
+        {screen === 'shield' && <ShieldScreen />}
+      </div>
     </ThemeProvider>
   )
 }
