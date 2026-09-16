@@ -279,10 +279,17 @@ export function Composer({ onStart }: { onStart?: () => void }) {
         )
       )}
 
-      {/* Subject artifacts */}
-      {current.artifacts.map((a, i) =>
-        layerShell(artifactKey(a), artifactDefault(i), 30 + i, artifactContent(a))
-      )}
+      {/* Subject artifacts, ABC order by caption (then subject) so the
+          default grid reads alphabetically top-to-bottom */}
+      {[...current.artifacts]
+        .sort((a, b) =>
+          (a.caption.trim() || SUBJECTS[a.subject].label).localeCompare(
+            b.caption.trim() || SUBJECTS[b.subject].label,
+            undefined,
+            { sensitivity: 'base' }
+          )
+        )
+        .map((a, i) => layerShell(artifactKey(a), artifactDefault(i), 30 + i, artifactContent(a)))}
 
       {/* Character idle */}
       {character &&
