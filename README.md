@@ -1,5 +1,7 @@
 # THE SHIELD
 
+[![CI](https://github.com/jasaenz2011-dot/the-shield/actions/workflows/ci.yml/badge.svg)](https://github.com/jasaenz2011-dot/the-shield/actions/workflows/ci.yml)
+
 A student-run digital portfolio for parent-teacher conferences. Students build a
 personalized, presentation-grade "shield" showcasing everything they learned this
 year, and present it themselves.
@@ -32,9 +34,23 @@ year, and present it themselves.
 npm install
 npm run dev        # hot-reload dev app
 npm run typecheck  # strict TS check
+npm test           # unit tests (vitest)
 npm run build      # bundle main/preload/renderer to out/
 npm run dist       # build installers (.exe on Windows, .dmg on macOS, AppImage on Linux)
 ```
+
+## Testing
+
+Unit tests live in `tests/` and cover the pure logic that the app's safety and
+portability guarantees rest on: config resolution and fallbacks, shield
+document invariants, idle-vibe parameters, mansion room presets, viewer HTML
+generation (including hostile-name escaping), and export URL rewriting
+(including the guarantee that the original photo never leaves the machine).
+
+UI flows are covered by Playwright-driven end-to-end runs against the packaged
+app (see phase history in the commits); those need a display/Xvfb and are run
+before each push rather than in CI. CI (`.github/workflows/ci.yml`) runs
+typecheck + unit tests + bundle build on every push and pull request.
 
 Installers must be built on (or CI-targeted at) each OS; cross-building Windows
 installers from Linux/macOS requires Wine and is not recommended.
