@@ -11,6 +11,7 @@ import { PressStart } from './PressStart'
 import { StingrayEgg } from './StingrayEgg'
 import { StylePicker } from '../styles/StylePicker'
 import { styleById } from '../styles/registry'
+import { MuteButton } from '../sound/MuteButton'
 
 // THE LOCKED FEATURE: every shield opens on this screen.
 export function CharacterSelectScreen() {
@@ -82,6 +83,7 @@ export function CharacterSelectScreen() {
             >
               Style: {style.name}
             </button>
+            <MuteButton />
           </div>
         </div>
       )}

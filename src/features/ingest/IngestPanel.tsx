@@ -2,6 +2,7 @@ import { useRef, useState, type DragEvent, type ReactNode } from 'react'
 import type { ArtifactRef, Subject } from '../../types/shield'
 import { SUBJECTS } from '../../types/shield'
 import { importFiles } from './importer'
+import { sfx } from '../sound/sound'
 
 interface Props {
   shieldId: string
@@ -41,6 +42,7 @@ export function IngestPanel({ shieldId, onCommit, children }: Props) {
     setTray((t) => t.map((a) => (a.id === id ? { ...a, ...patch } : a)))
 
   const commit = () => {
+    sfx.saved()
     onCommit(tray)
     setTray([])
     setSkipped([])

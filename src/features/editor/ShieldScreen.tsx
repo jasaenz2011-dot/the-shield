@@ -6,6 +6,7 @@ import { TemplateChooser } from './TemplateChooser'
 import { IngestPanel } from '../ingest/IngestPanel'
 import { OrganizeDrawer } from '../ingest/OrganizeDrawer'
 import { exportShield } from '../export/exporter'
+import { MuteButton } from '../sound/MuteButton'
 
 // Post-PRESS-START surface: template chooser when none is set; otherwise the
 // active template inside editor chrome. Present mode hides all chrome.
@@ -103,6 +104,7 @@ export function ShieldScreen() {
           >
             Export
           </button>
+          <MuteButton />
           <button
             onClick={() => {
               setPresentMode(true)

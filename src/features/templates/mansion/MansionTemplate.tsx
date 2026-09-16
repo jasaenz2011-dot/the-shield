@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { TemplateProps } from '../types'
 import { ROOMS, roomById, type RoomPreset } from './rooms'
 import { ArtifactCard, EmptyState } from '../shared'
+import { sfx } from '../../sound/sound'
 
 // Multi-room mansion: each subject is a themed room; doors zoom you through.
 // Transitions are opacity + scale only, so they composite at 60fps on iGPU.
@@ -22,6 +23,7 @@ export function MansionTemplate({ shield, presentMode, onDataChange }: TemplateP
 
   const goTo = (id: string) => {
     if (id === roomId || pending) return
+    sfx.door()
     setPending(id)
     setPhase('out')
     window.setTimeout(() => {

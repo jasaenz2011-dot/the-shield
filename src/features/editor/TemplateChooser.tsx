@@ -1,4 +1,5 @@
 import { TEMPLATES } from '../templates/registry'
+import { sfx } from '../sound/sound'
 
 export function TemplateChooser({
   onPick,
@@ -23,7 +24,10 @@ export function TemplateChooser({
         {TEMPLATES.map((t) => (
           <button
             key={t.id}
-            onClick={() => onPick(t.id)}
+            onClick={() => {
+              sfx.tick()
+              onPick(t.id)
+            }}
             className="group overflow-hidden rounded-2xl border border-white/10 text-left transition hover:-translate-y-1 hover:border-[var(--shield-primary)] focus:outline-none focus-visible:border-[var(--shield-primary)]"
           >
             <div
