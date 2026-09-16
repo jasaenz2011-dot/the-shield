@@ -3,6 +3,8 @@ import { useAppStore } from '../../app/store/appStore'
 import { useShieldStore } from '../../app/store/shieldStore'
 import { templateById } from '../templates/registry'
 import { TemplateChooser } from './TemplateChooser'
+import { IngestPanel } from '../ingest/IngestPanel'
+import { OrganizeDrawer } from '../ingest/OrganizeDrawer'
 
 // Post-PRESS-START surface: template chooser when none is set; otherwise the
 // active template inside editor chrome. Present mode hides all chrome.
@@ -11,6 +13,7 @@ export function ShieldScreen() {
   const { current, updateCurrent } = useShieldStore()
   const [choosing, setChoosing] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
+  const [organizing, setOrganizing] = useState(false)
 
   // Leaving OS fullscreen (Esc) also leaves present mode.
   useEffect(() => {
@@ -64,6 +67,18 @@ export function ShieldScreen() {
           </span>
           <span className="flex-1" />
           <button
+            onClick={() => document.getElementById('ingest-file-input')?.click()}
+            className="rounded-lg border border-[var(--shield-primary)]/50 px-3 py-1.5 text-sm font-semibold text-[var(--shield-primary)] transition hover:bg-[var(--shield-primary)]/10"
+          >
+            + Add work
+          </button>
+          <button
+            onClick={() => setOrganizing(true)}
+            className="rounded-lg px-3 py-1.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
+          >
+            Organize
+          </button>
+          <button
             onClick={() => setChoosing(true)}
             className="rounded-lg px-3 py-1.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
           >
@@ -93,11 +108,29 @@ export function ShieldScreen() {
       )}
 
       <main className="relative min-h-0 flex-1">
-        <template.Component
-          shield={current}
-          presentMode={presentMode}
-          onDataChange={handleDataChange}
-        />
+        <IngestPanel
+          shieldId={current.id}
+          onCommit={(added) =>
+            void updateCurrent({ artifacts: [...current.artifacts, ...added] })
+          }
+        >
+          <template.Component
+            shield={current}
+            presentMode={presentMode}
+            onDataChange={handleDataChange}
+          />
+        </IngestPanel>
+
+        {organizing && !presentMode && (
+          <OrganizeDrawer
+            artifacts={current.artifacts}
+            onClose={() => setOrganizing(false)}
+            onSave={(artifacts) => {
+              void updateCurrent({ artifacts })
+              setOrganizing(false)
+            }}
+          />
+        )}
       </main>
     </div>
   )
