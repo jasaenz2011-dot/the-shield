@@ -14,7 +14,15 @@ const api = {
   saveAsset: (shieldId: string, name: string, bytes: Uint8Array): Promise<{ url: string }> =>
     ipcRenderer.invoke('shield:saveAsset', shieldId, name, bytes),
 
-  listShields: (): Promise<unknown[]> => ipcRenderer.invoke('shield:list')
+  listShields: (): Promise<unknown[]> => ipcRenderer.invoke('shield:list'),
+
+  exportShield: (
+    shieldId: string,
+    html: string,
+    assets: { from: string; to: string }[],
+    destDir?: string
+  ): Promise<{ ok: boolean; dir?: string; canceled?: boolean; error?: string }> =>
+    ipcRenderer.invoke('shield:export', shieldId, html, assets, destDir)
 }
 
 export type ShieldAPI = typeof api

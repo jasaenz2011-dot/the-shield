@@ -5,6 +5,7 @@ import { templateById } from '../templates/registry'
 import { TemplateChooser } from './TemplateChooser'
 import { IngestPanel } from '../ingest/IngestPanel'
 import { OrganizeDrawer } from '../ingest/OrganizeDrawer'
+import { exportShield } from '../export/exporter'
 
 // Post-PRESS-START surface: template chooser when none is set; otherwise the
 // active template inside editor chrome. Present mode hides all chrome.
@@ -14,6 +15,8 @@ export function ShieldScreen() {
   const [choosing, setChoosing] = useState(false)
   const [presentMode, setPresentMode] = useState(false)
   const [organizing, setOrganizing] = useState(false)
+  const [exportNote, setExportNote] = useState<string | null>(null)
+  const config = useAppStore((s) => s.config)
 
   // Leaving OS fullscreen (Esc) also leaves present mode.
   useEffect(() => {
@@ -86,6 +89,19 @@ export function ShieldScreen() {
           </button>
           <button
             onClick={() => {
+              setExportNote('Exporting…')
+              void exportShield(current, config).then((r) => {
+                setExportNote(
+                  r.ok ? `Exported to ${r.dir}` : r.canceled ? null : `Export failed: ${r.error ?? 'unknown error'}`
+                )
+              })
+            }}
+            className="rounded-lg px-3 py-1.5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
+          >
+            Export
+          </button>
+          <button
+            onClick={() => {
               setPresentMode(true)
               void document.documentElement.requestFullscreen().catch(() => {
                 // fullscreen can be denied; present mode still hides chrome
@@ -105,6 +121,15 @@ export function ShieldScreen() {
         >
           Exit (Esc)
         </button>
+      )}
+
+      {exportNote && (
+        <div className="absolute left-1/2 top-14 z-50 -translate-x-1/2 rounded-full bg-black/80 px-5 py-2 text-sm text-white/90 backdrop-blur-sm">
+          {exportNote}
+          <button onClick={() => setExportNote(null)} className="ml-3 text-white/40 hover:text-white">
+            &times;
+          </button>
+        </div>
       )}
 
       <main className="relative min-h-0 flex-1">

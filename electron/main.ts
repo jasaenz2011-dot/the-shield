@@ -1,6 +1,6 @@
-import { app, BrowserWindow, ipcMain, protocol, net, Menu } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, protocol, net, Menu } from 'electron'
 import { join, resolve, normalize, sep } from 'node:path'
-import { readFile, writeFile, mkdir, readdir, access } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, readdir, access, copyFile } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 
 const isDev = !app.isPackaged
@@ -18,6 +18,7 @@ function shieldsDir(): string {
 
 // Shield documents are addressed by id; keep ids filesystem-safe.
 const SHIELD_ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/
+const ASSET_NAME = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/
 
 async function fileExists(path: string): Promise<boolean> {
   try {
@@ -120,8 +121,6 @@ function registerIpc(): void {
     return JSON.parse(await readFile(join(shieldsDir(), `${id}.json`), 'utf-8'))
   })
 
-  const ASSET_NAME = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/
-
   ipcMain.handle(
     'shield:saveAsset',
     async (_event, shieldId: unknown, name: unknown, bytes: unknown) => {
@@ -138,6 +137,61 @@ function registerIpc(): void {
       await mkdir(dir, { recursive: true })
       await writeFile(join(dir, name), Buffer.from(bytes as ArrayBuffer))
       return { url: `shield://user-assets/${shieldId}/assets/${encodeURIComponent(name)}` }
+    }
+  )
+
+  // Export: write the viewer HTML and copy the listed assets. Sources may
+  // only come from this shield's own asset folder — anything else is refused.
+  ipcMain.handle(
+    'shield:export',
+    async (
+      _event,
+      shieldId: unknown,
+      html: unknown,
+      assets: unknown,
+      destDir: unknown
+    ) => {
+      if (typeof shieldId !== 'string' || !SHIELD_ID.test(shieldId)) {
+        throw new Error('Invalid shield id')
+      }
+      if (typeof html !== 'string' || html.length > 8 * 1024 * 1024) {
+        throw new Error('Invalid export document')
+      }
+      if (!Array.isArray(assets)) throw new Error('Invalid asset list')
+
+      let target: string
+      if (typeof destDir === 'string' && destDir.length > 0) {
+        target = destDir
+      } else {
+        const win = BrowserWindow.getAllWindows()[0]
+        const picked = await dialog.showOpenDialog(win, {
+          title: 'Choose where to export your shield',
+          properties: ['openDirectory', 'createDirectory']
+        })
+        if (picked.canceled || picked.filePaths.length === 0) return { ok: false, canceled: true }
+        target = join(picked.filePaths[0], `${shieldId}-shield`)
+      }
+
+      const assetBase = join(shieldsDir(), shieldId, 'assets')
+      await mkdir(join(target, 'assets'), { recursive: true })
+
+      for (const entry of assets as { from?: unknown; to?: unknown }[]) {
+        if (typeof entry.from !== 'string' || typeof entry.to !== 'string') continue
+        const name = decodeURIComponent(entry.from.split('/').pop() ?? '')
+        if (!ASSET_NAME.test(name)) continue
+        const source = normalize(join(assetBase, name))
+        if (!source.startsWith(assetBase + sep)) continue
+        const dest = normalize(join(target, 'assets', name))
+        if (!dest.startsWith(join(target, 'assets') + sep)) continue
+        try {
+          await copyFile(source, dest)
+        } catch {
+          // missing asset: viewer degrades gracefully, keep exporting
+        }
+      }
+
+      await writeFile(join(target, 'index.html'), html, 'utf-8')
+      return { ok: true, dir: target }
     }
   )
 
