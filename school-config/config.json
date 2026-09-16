@@ -1,0 +1,18 @@
+{
+  "schoolName": "Stingray Elementary",
+  "mascotName": "Stingray",
+  "schoolYear": "2026–27",
+  "colors": {
+    "primary": "#22d3ee",
+    "secondary": "#0e7490",
+    "accent": "#fbbf24",
+    "background": "#0b0f1a",
+    "foreground": "#f8fafc"
+  },
+  "splash": {
+    "video": null,
+    "maxSeconds": 8,
+    "fadeOutMs": 600,
+    "skipAfterFirstRun": true
+  }
+}

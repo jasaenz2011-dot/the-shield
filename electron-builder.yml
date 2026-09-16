@@ -1,0 +1,22 @@
+appId: app.theshield.portfolio
+productName: The Shield
+directories:
+  output: release
+files:
+  - out/**
+extraResources:
+  - from: school-config
+    to: school-config
+win:
+  target: nsis
+nsis:
+  oneClick: true
+  perMachine: false
+mac:
+  target: dmg
+  category: public.app-category.education
+linux:
+  target: AppImage
+  category: Education
+npmRebuild: false
+publish: null
