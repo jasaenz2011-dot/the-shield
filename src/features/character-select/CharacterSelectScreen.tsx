@@ -54,7 +54,7 @@ export function CharacterSelectScreen() {
           {/* Badge + start */}
           <div className="absolute inset-x-0 bottom-10 z-20 flex flex-col items-center gap-6">
             <YearBadge />
-            <PressStart onStart={() => setScreen('shield-stub')} />
+            <PressStart onStart={() => setScreen('shield')} />
           </div>
 
           <div className="absolute right-4 top-4 z-30 flex gap-2">

@@ -5,6 +5,21 @@ export const SHIELD_DOC_VERSION = 0
 
 export type Vibe = 'cool' | 'tough' | 'cute' | 'confident' | 'playful'
 
+export type Subject = 'math' | 'science' | 'art' | 'history' | 'reading' | 'life'
+
+export type ArtifactKind = 'image' | 'video' | 'audio' | 'text'
+
+// Template-agnostic content: every template renders the same artifact list its
+// own way, so switching templates never loses student work.
+export interface ArtifactRef {
+  id: string
+  kind: ArtifactKind
+  url: string // shield:// asset URL ('' for text-only artifacts)
+  caption: string
+  subject: Subject
+  createdAt: string
+}
+
 export interface CharacterConfig {
   // shield:// URLs of assets saved under this shield's assets folder
   cutoutUrl: string
@@ -23,7 +38,9 @@ export interface ShieldDocument {
   style: string | null // Phase 2: art style id
   template: string | null // Phase 3: template id
   character: CharacterConfig | null // Phase 1: cutout, vibe, montage refs
-  artifacts: unknown[] // Phase 4: ingested media
+  artifacts: ArtifactRef[] // Phase 4: ingested media
+  // Per-template layout hints keyed by template id; preserved across switches.
+  templateData: Record<string, unknown>
 }
 
 export function newShieldDocument(studentName: string): ShieldDocument {
@@ -37,6 +54,16 @@ export function newShieldDocument(studentName: string): ShieldDocument {
     style: null,
     template: null,
     character: null,
-    artifacts: []
+    artifacts: [],
+    templateData: {}
   }
+}
+
+export const SUBJECTS: Record<Subject, { label: string; icon: string; hue: string }> = {
+  math: { label: 'Math', icon: '÷', hue: '#38bdf8' },
+  science: { label: 'Science', icon: '⚛', hue: '#4ade80' },
+  art: { label: 'Art', icon: '✎', hue: '#f472b6' },
+  history: { label: 'History', icon: '⧗', hue: '#fbbf24' },
+  reading: { label: 'Reading', icon: '¶', hue: '#c084fc' },
+  life: { label: 'My Life', icon: '☀', hue: '#fb923c' }
 }

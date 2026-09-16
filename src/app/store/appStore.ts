@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { DEFAULT_CONFIG, resolveConfig, type SchoolConfig } from '../../config/schema'
 
-export type Screen = 'splash' | 'home' | 'character' | 'shield-stub'
+export type Screen = 'splash' | 'home' | 'character' | 'shield'
 
 interface AppState {
   screen: Screen
