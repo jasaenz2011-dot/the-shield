@@ -11,6 +11,9 @@ const api = {
 
   loadShield: (id: string): Promise<unknown> => ipcRenderer.invoke('shield:load', id),
 
+  saveAsset: (shieldId: string, name: string, bytes: Uint8Array): Promise<{ url: string }> =>
+    ipcRenderer.invoke('shield:saveAsset', shieldId, name, bytes),
+
   listShields: (): Promise<unknown[]> => ipcRenderer.invoke('shield:list')
 }
 

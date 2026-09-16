@@ -3,6 +3,16 @@
 
 export const SHIELD_DOC_VERSION = 0
 
+export type Vibe = 'cool' | 'tough' | 'cute' | 'confident' | 'playful'
+
+export interface CharacterConfig {
+  // shield:// URLs of assets saved under this shield's assets folder
+  cutoutUrl: string
+  originalUrl: string
+  vibe: Vibe
+  montageUrls: string[]
+}
+
 export interface ShieldDocument {
   version: typeof SHIELD_DOC_VERSION
   id: string
@@ -12,7 +22,7 @@ export interface ShieldDocument {
   // Set by later phases; kept in the schema now so documents round-trip forward.
   style: string | null // Phase 2: art style id
   template: string | null // Phase 3: template id
-  character: null // Phase 1: cutout, vibe, montage refs
+  character: CharacterConfig | null // Phase 1: cutout, vibe, montage refs
   artifacts: unknown[] // Phase 4: ingested media
 }
 

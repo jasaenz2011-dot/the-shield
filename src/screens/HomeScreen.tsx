@@ -3,7 +3,7 @@ import { useAppStore } from '../app/store/appStore'
 import { useShieldStore } from '../app/store/shieldStore'
 
 export function HomeScreen() {
-  const { config, logoUrl } = useAppStore()
+  const { config, logoUrl, setScreen } = useAppStore()
   const { shields, current, refresh, createShield, openShield } = useShieldStore()
   const [name, setName] = useState('')
   const [creating, setCreating] = useState(false)
@@ -18,6 +18,7 @@ export function HomeScreen() {
     try {
       await createShield(name)
       setName('')
+      setScreen('character')
     } finally {
       setCreating(false)
     }
@@ -67,11 +68,6 @@ export function HomeScreen() {
         >
           {creating ? 'Creating…' : 'New Shield'}
         </button>
-        {current && (
-          <p className="text-center text-sm text-[var(--shield-accent)]">
-            Saved &ldquo;{current.studentName}&rdquo; &mdash; character select arrives in Phase 1.
-          </p>
-        )}
       </div>
 
       {shields.length > 0 && (
@@ -81,7 +77,7 @@ export function HomeScreen() {
             {shields.map((s) => (
               <li key={s.id}>
                 <button
-                  onClick={() => void openShield(s.id)}
+                  onClick={() => void openShield(s.id).then(() => setScreen('character'))}
                   className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition hover:bg-white/10 ${
                     current?.id === s.id
                       ? 'border-[var(--shield-primary)] bg-white/10'

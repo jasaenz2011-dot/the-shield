@@ -7,9 +7,10 @@ interface ShieldState {
   refresh: () => Promise<void>
   createShield: (studentName: string) => Promise<ShieldDocument>
   openShield: (id: string) => Promise<void>
+  updateCurrent: (patch: Partial<ShieldDocument>) => Promise<void>
 }
 
-export const useShieldStore = create<ShieldState>((set) => ({
+export const useShieldStore = create<ShieldState>((set, get) => ({
   shields: [],
   current: null,
 
@@ -31,5 +32,13 @@ export const useShieldStore = create<ShieldState>((set) => ({
   openShield: async (id: string) => {
     const doc = (await window.shieldAPI.loadShield(id)) as ShieldDocument
     set({ current: doc })
+  },
+
+  updateCurrent: async (patch: Partial<ShieldDocument>) => {
+    const current = get().current
+    if (!current) return
+    const next: ShieldDocument = { ...current, ...patch, updatedAt: new Date().toISOString() }
+    await window.shieldAPI.saveShield(next)
+    set({ current: next })
   }
 }))

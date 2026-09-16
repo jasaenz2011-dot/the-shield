@@ -62,27 +62,44 @@ async function loadSchoolConfig(): Promise<SchoolConfigPayload> {
   return { raw, splashVideoUrl, logoUrl }
 }
 
-// shield:// serves admin-provided media (splash video, logo) to the sandboxed
-// renderer without giving it filesystem access.
+// shield:// serves admin media and saved student assets to the sandboxed
+// renderer without giving it filesystem access. app:// serves the packaged
+// renderer itself (instead of file://) so same-origin fetches of the WASM
+// runtime, segmentation model, and fonts work identically in dev and prod.
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'shield',
     privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true }
+  },
+  {
+    scheme: 'app',
+    privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true }
   }
 ])
 
-function registerShieldProtocol(): void {
+function serveWithin(base: string, relativePath: string): Response | Promise<Response> {
+  const target = normalize(join(base, relativePath))
+  if (!target.startsWith(base + sep)) {
+    return new Response('forbidden', { status: 403 })
+  }
+  return net.fetch(pathToFileURL(target).toString())
+}
+
+function registerProtocols(): void {
   protocol.handle('shield', (request) => {
     const url = new URL(request.url)
-    if (url.host !== 'school-config') {
-      return new Response('not found', { status: 404 })
-    }
-    const base = schoolConfigDir()
-    const target = normalize(join(base, decodeURIComponent(url.pathname)))
-    if (!target.startsWith(base + sep)) {
-      return new Response('forbidden', { status: 403 })
-    }
-    return net.fetch(pathToFileURL(target).toString())
+    const path = decodeURIComponent(url.pathname)
+    if (url.host === 'school-config') return serveWithin(schoolConfigDir(), path)
+    if (url.host === 'user-assets') return serveWithin(shieldsDir(), path)
+    return new Response('not found', { status: 404 })
+  })
+
+  protocol.handle('app', (request) => {
+    const url = new URL(request.url)
+    if (url.host !== 'renderer') return new Response('not found', { status: 404 })
+    let path = decodeURIComponent(url.pathname)
+    if (path === '/' || path === '') path = '/index.html'
+    return serveWithin(join(__dirname, '../renderer'), path)
   })
 }
 
@@ -102,6 +119,27 @@ function registerIpc(): void {
     if (typeof id !== 'string' || !SHIELD_ID.test(id)) throw new Error('Invalid shield id')
     return JSON.parse(await readFile(join(shieldsDir(), `${id}.json`), 'utf-8'))
   })
+
+  const ASSET_NAME = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/
+
+  ipcMain.handle(
+    'shield:saveAsset',
+    async (_event, shieldId: unknown, name: unknown, bytes: unknown) => {
+      if (typeof shieldId !== 'string' || !SHIELD_ID.test(shieldId)) {
+        throw new Error('Invalid shield id')
+      }
+      if (typeof name !== 'string' || !ASSET_NAME.test(name) || name.includes('..')) {
+        throw new Error('Invalid asset name')
+      }
+      if (!(bytes instanceof Uint8Array) && !(bytes instanceof ArrayBuffer)) {
+        throw new Error('Invalid asset data')
+      }
+      const dir = join(shieldsDir(), shieldId, 'assets')
+      await mkdir(dir, { recursive: true })
+      await writeFile(join(dir, name), Buffer.from(bytes as ArrayBuffer))
+      return { url: `shield://user-assets/${shieldId}/assets/${encodeURIComponent(name)}` }
+    }
+  )
 
   ipcMain.handle('shield:list', async () => {
     await mkdir(shieldsDir(), { recursive: true })
@@ -140,14 +178,14 @@ function createWindow(): void {
   if (isDev && process.env['ELECTRON_RENDERER_URL']) {
     void win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    void win.loadFile(join(__dirname, '../renderer/index.html'))
+    void win.loadURL('app://renderer/')
   }
 }
 
 Menu.setApplicationMenu(null)
 
 void app.whenReady().then(() => {
-  registerShieldProtocol()
+  registerProtocols()
   registerIpc()
   createWindow()
 
