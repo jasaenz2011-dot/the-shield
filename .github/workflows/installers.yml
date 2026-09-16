@@ -1,0 +1,51 @@
+name: Installers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+            artifact: the-shield-windows-exe
+            path: release/*.exe
+          - os: macos-latest
+            target: --mac
+            artifact: the-shield-macos-dmg
+            path: release/*.dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+      - name: Build bundles
+        run: npm run build
+
+      # Unsigned builds: schools install via their own device management.
+      # CSC_IDENTITY_AUTO_DISCOVERY=false stops electron-builder from looking
+      # for a signing certificate on the macOS runner.
+      - name: Package installer
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error
